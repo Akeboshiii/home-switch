@@ -1,5 +1,6 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
+#include <WiFiClientSecureBearSSL.h> 
 
 const char* ssid = "YOUR_WIFI_SSID"; //name ng wifi
 const char* password = "YOUR_WIFI_PASSWORD"; //pass niya
@@ -20,10 +21,10 @@ void loop() {
     lastRequest = millis();
 
     if (WiFi.status() == WL_CONNECTED) {
-      Serial.println("Connected, fetching data")
+      BearSSL::WiFiClientSecure client;
+      client.setInsecure();   
+      
       HTTPClient http;
-      WiFiClient client;
-      http.setInsecure();
       http.begin(client, apiUrl);
       int httpCode = http.GET();
 
