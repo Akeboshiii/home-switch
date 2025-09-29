@@ -1,0 +1,54 @@
+#include <ESP8266WiFi.h>
+#include <WiFiClientSecure.h>
+
+const char* ssid = "SSID";
+const char* password = "PASSWORD";
+
+#define API_HOST "home-web-switch.vercel.app"
+#define API_PATH "/data"
+
+WiFiClientSecure client;
+unsigned long lastRequest = 0;
+const unsigned long interval = 1000; // 1 second
+
+void setup() {
+  Serial.begin(9600);              // ✅ 9600 baud
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) delay(500);
+  client.setInsecure();            // ✅ Ignore SSL validation
+}
+
+void loop() {
+  if (millis() - lastRequest >= interval) {
+    lastRequest = millis();
+    makeRequest();
+  }
+}
+
+void makeRequest() {
+  if (!client.connect(API_HOST, 443)) return;
+
+  client.print(String("GET ") + API_PATH + " HTTP/1.1\r\n" +
+               "Host: " + API_HOST + "\r\n" +
+               "Connection: close\r\n\r\n");
+
+  while (client.connected() && !client.available()) delay(1);
+
+  String payload = "";
+  while (client.available()) {
+    char c = client.read();
+    payload += c;
+  }
+
+  // Example payload: {"relay1":true,"relay2":false}
+  int r1 = payload.indexOf("relay1");
+  int r2 = payload.indexOf("relay2");
+  if (r1 > 0 && r2 > 0) {
+    bool relay1 = payload.substring(r1).indexOf("true") < payload.substring(r1).indexOf("false");
+    bool relay2 = payload.substring(r2).indexOf("true") < payload.substring(r2).indexOf("false");
+
+    Serial.print(relay1 ? "true" : "false");
+    Serial.print(",");
+    Serial.println(relay2 ? "true" : "false");
+  }
+}
