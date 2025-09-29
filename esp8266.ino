@@ -6,10 +6,11 @@ const char* password = "YOUR_WIFI_PASSWORD"; //pass niya
 const char* apiUrl = "https://home-web-switch.vercel.app/data";  // {"relay1":true,"relay2":false}
 
 unsigned long lastRequest = 0;
-const unsigned long interval = 5000;
+const unsigned long interval = 10000;
 
 void setup() {
   Serial.begin(9600); // Esp TX to Arduino RX
+  Serial.println("Init...")
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) delay(500);
 }
@@ -19,8 +20,10 @@ void loop() {
     lastRequest = millis();
 
     if (WiFi.status() == WL_CONNECTED) {
+      Serial.println("Connected, fetching data")
       HTTPClient http;
-      http.begin(apiUrl);
+      WiFiClient client;
+      http.begin(client, apiUrl);
       int httpCode = http.GET();
 
       if (httpCode == 200) {
