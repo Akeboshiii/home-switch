@@ -23,6 +23,7 @@ void loop() {
       Serial.println("Connected, fetching data")
       HTTPClient http;
       WiFiClient client;
+      http.setInsecure();
       http.begin(client, apiUrl);
       int httpCode = http.GET();
 
