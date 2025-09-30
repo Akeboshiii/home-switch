@@ -1,5 +1,7 @@
-const int relay1Pin = 2;
-const int relay2Pin = 3;
+#include <ArduinoJson.h>
+
+const int relay1Pin = 9;
+const int relay2Pin = 10;
 
 void setup() {
   pinMode(relay1Pin, OUTPUT);
@@ -9,20 +11,19 @@ void setup() {
 
 void loop() {
   if (Serial.available()) {
-    String data = Serial.readStringUntil('\n');  // e.g. "true,false"
+    String json = Serial.readStringUntil('\n');
 
-    data.trim(); // Remove spaces or \r
-
-    int commaIndex = data.indexOf(',');
-    if (commaIndex > 0) {
-      String r1 = data.substring(0, commaIndex);        // before comma
-      String r2 = data.substring(commaIndex + 1);       // after comma
-
-      bool relay1State = (r1 == "true");
-      bool relay2State = (r2 == "true");
+    StaticJsonDocument<128> doc;
+    if (deserializeJson(doc, json) == DeserializationError::Ok) {
+      bool relay1State = doc["r1"];
+      bool relay2State = doc["r2"];
 
       digitalWrite(relay1Pin, relay1State);
       digitalWrite(relay2Pin, relay2State);
+      Serial.print(relay1State);
+      Serial.println(relay2State);
+      Serial.println(json);
+
     }
   }
 }
